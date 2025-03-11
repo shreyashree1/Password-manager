@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { useRef } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate } from 'uuid';
 
 const Manager = () => {
     const ref = useRef();
     const passwordRef = useRef();
     const [form, setform] = useState({site: "", username: "", password: ""})
     const [passwordArray, setPasswordArray] = useState([])
+    const [error, setError] = useState({site: "", username: "", password: ""});
 
     useEffect(() => {
         let passwords = localStorage.getItem("passwords");
@@ -47,6 +48,26 @@ const Manager = () => {
     }
 
     const savePassword = () => {
+        // if(form.site.length === 0) {
+        //     error.site = 'Site field cannot be empty'
+        // }
+        // else if(form.site.length < 3) {
+        //     error.site = 'Site field should contain atleast 3 characters'
+        // }
+        // if(form.username.length === 0) {
+        //     error.username = 'Username field cannot be empty'
+        // }
+        // else if(form.username.length < 3) {
+        //     error.username = 'Username field should contain atleast 3 characters'
+        // }
+        // if(form.password.length === 0) {
+        //     error.password = 'Password field cannot be empty'
+        // }
+        // else if(form.password.length < 3) {
+        //     error.password = 'Password field should contain atleast 3 characters'
+        // }
+        const newerror = validateForm(form)
+        setError(newerror)
         if(form.site.length > 3 && form.username.length > 3 && form.password.length > 3) {
             setPasswordArray([...passwordArray, {...form, id: uuidv4()}])
             localStorage.setItem("passwords", JSON.stringify([...passwordArray, {...form, id: uuidv4()}]))
@@ -67,10 +88,35 @@ const Manager = () => {
         }
     }
 
+    const validateForm = (data) => {
+        const errors = {};
+
+        if (data.site.length == 0) {
+            errors.site = 'Site field is cannot be empty';
+        } else if (data.site.length < 3) {
+            errors.site = 'Site field is should contain atleast 3 characters';
+        }
+
+        if (data.username.length == 0) {
+            errors.username = 'Site field is cannot be empty';
+        } else if (data.username.length < 3) {
+            errors.username = 'Site field is should contain atleast 3 characters';
+        }
+
+        if (data.password.length == 0) {
+            errors.password = 'Site field is cannot be empty';
+        } else if (data.password.length < 3) {
+            errors.password = 'Site field is should contain atleast 3 characters';
+        }
+
+        return errors;
+    };
+
     const editPassword = (id) => {
         setform(passwordArray.filter(i => i.id===id)[0])
         setPasswordArray(passwordArray.filter(item => item.id!==id))
     }
+
     const deletePassword = (id) => {
         let c = confirm("Do you really want to delete this password?")
         if(c) {
@@ -118,14 +164,23 @@ const Manager = () => {
                 </h1>
                 <p className='text-green-900 text-lg text-center'>Your own Password Manager</p>
                 <div className='flex flex-col items-center p-4 text-black gap-8'>
-                    <input value={form.site} onChange={handleChange} placeholder='Enter Website URL' type="text" name='site' id='site' className="rounded-xl border border-green-500 w-full px-4 py-2" />
+                    <div className='w-full'>
+                        <input value={form.site} onChange={handleChange} placeholder='Enter Website URL' type="text" name='site' id='site' className="rounded-xl border border-green-500 w-full px-4 py-2" />
+                        {error.site && <div className='text-red-700'>{error.site}</div> }
+                    </div>
                     <div className="flex flex-col md:flex-row w-full justify-between gap-8">
-                        <input value={form.username} onChange={handleChange} placeholder='Enter Username' type="text" name='username' id='username' className="rounded-xl border border-green-500 w-full px-4 py-2" />
-                        <div className="relative">
-                            <input ref={passwordRef} value={form.password} onChange={handleChange} placeholder='Enter Password' type="password" name='password' id='password' className="rounded-xl border border-green-500 w-full px-4 py-2" />
-                            <span className="absolute right-[4px] top-[4px] cursor-pointer" onClick={showPassword}>
-                                <img ref={ref} className='p-1' width={25} src='/icons/eye.svg' alt='eye' />
-                            </span>
+                        <div className='w-[75%]'>
+                            <input value={form.username} onChange={handleChange} placeholder='Enter Username' type="text" name='username' id='username' className="rounded-xl border border-green-500 w-full px-4 py-2" />
+                            {error.username && <div className='text-red-700'>{error.username}</div> }
+                        </div>
+                        <div className='w-[25%]'>
+                            <div className="relative">
+                                <input ref={passwordRef} value={form.password} onChange={handleChange} placeholder='Enter Password' type="password" name='password' id='password' className="rounded-xl border border-green-500 w-full px-4 py-2" />
+                                <span className="absolute right-[4px] top-[8px] cursor-pointer" onClick={showPassword}>
+                                    <img ref={ref} className='p-1' width={25} src='/icons/eye.svg' alt='eye' />
+                                </span>
+                            </div>
+                            {error.password && <div className='text-red-700'>{error.password}</div> }
                         </div>
                     </div>
                     <button onClick={savePassword} className='flex justify-center items-center gap-2 bg-green-400 hover:bg-green-300 rounded-full px-4 py-2 w-fit border border-green-900 cursor-pointer'>
